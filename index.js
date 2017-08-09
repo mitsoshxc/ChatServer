@@ -12,7 +12,6 @@ http.listen(1969, function(){
 });
 
 io.on('connection', function(socket){
-  // console.log('a user connected with id: ' + socket.id);
   socket.on('disconnect', function(){
     console.log('User  disconnected');
   });
@@ -21,10 +20,9 @@ io.on('connection', function(socket){
   });
   socket.on('join', function(data){
     users.push(data.user);
-    // user = {id: socket.id, name: data.user};
     socket.join('global');
     socket.join(data.user);
-    io.emit('new-user', users);
+    socket.emit('new-user', users);
     console.log('User ' + data.user + ' connected with id ' + socket.id);
     //console.log(io.sockets.adapter.rooms);
   });
