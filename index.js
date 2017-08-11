@@ -13,21 +13,28 @@ http.listen(1969, function(){
 
 io.on('connection', function(socket){
   socket.on('disconnect', function(){
-    users.splice(users.indexOf(socket.id), 1);
+    console.log('User  ' + users[users.findIndex(p => p.id == socket.id)].name + '  disconnected');
+    users.splice(users.findIndex(p => p.id == socket.id), 1);
     io.emit('new-user', users);
-    console.log('User with id: ' + socket.id + ' disconnected');
   });
-  socket.on('chat message', function(msg){
-    io.emit('chat message', msg);
+
+  socket.on('chat-message', function(msg){
+    console.log(msg);
+    io.emit('new-message', {
+                            message: msg,
+                            user: users[users.findIndex(p => p.id == socket.id)].name
+                           });
   });
+
   socket.on('join', function(data){
-    users.push({
-                id: socket.id,
-                name: data.user
-              });
+      users.push({
+                  id: socket.id,
+                  name: data.user
+                });
     socket.join('global');
     socket.join(data.user);
     io.emit('new-user', users);
     console.log('User ' + data.user + ' connected with id ' + socket.id);
   });
+
 });
