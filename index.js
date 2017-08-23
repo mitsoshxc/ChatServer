@@ -14,6 +14,7 @@ http.listen(1969, function(){
 io.on('connection', function(socket){
   socket.on('disconnect', function(){
     console.log('User  ' + users[users.findIndex(p => p.id == socket.id)].name + '  disconnected');
+    io.emit('user-left', users[users.findIndex(p => p.id == socket.id)].name);
     users.splice(users.findIndex(p => p.id == socket.id), 1);
     io.emit('new-user', users);
   });
