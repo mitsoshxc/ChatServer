@@ -25,10 +25,23 @@ io.on('connection', function(socket) {
     //   message: msg,
     //   user: users[users.findIndex(p => p.id == socket.id)].name
     // });
-    socket.broadcast.to(users[users.findIndex(p => p.id == socket.id)].room).emit('new-message', {
-      message: msg,
-      user: users[users.findIndex(p => p.id == socket.id)].name
-    });
+    var spltres = msg.split(' ');
+
+    if (spltres[0] == '\\w') {
+      var messageToGo = spltres[2];
+      for (var i = 3; i < spltres.length; i++) {
+        messageToGo += ' ' + spltres[i];
+      }
+      socket.broadcast.to(users[users.findIndex(p => p.name == spltres[1].slice(0, -1))].id).emit('send-whisper', {
+        user: users[users.findIndex(p => p.id == socket.id)].name,
+        message: messageToGo
+      });
+    } else {
+      socket.broadcast.to(users[users.findIndex(p => p.id == socket.id)].room).emit('new-message', {
+        message: msg,
+        user: users[users.findIndex(p => p.id == socket.id)].name
+      });
+    }
   });
 
   socket.on('join', function(data) {
@@ -45,11 +58,18 @@ io.on('connection', function(socket) {
 
   socket.on('group-change', function(group) {
     socket.leave(users[users.findIndex(p => p.id == socket.id)].room);
+    socket.broadcast.to(users[users.findIndex(p => p.id == socket.id)].room).emit('user-left-group',
+      users[users.findIndex(p => p.id == socket.id)].name
+    );
     socket.join(group);
     users[users.findIndex(p => p.id == socket.id)].room = group;
-    for (var i = 0; i < users.length; i++) {
-      console.log('User: ' + users[i].name + '  Id: ' + users[i].id + '   Room: ' + users[i].room);
-    }
+    socket.broadcast.to(users[users.findIndex(p => p.id == socket.id)].room).emit('user-join-group',
+      users[users.findIndex(p => p.id == socket.id)].name
+    );
+    io.emit('refresh-users', users);
+    // for (var i = 0; i < users.length; i++) {
+    //   console.log('User: ' + users[i].name + '  Id: ' + users[i].id + '   Room: ' + users[i].room);
+    // }
   });
 
 });
