@@ -20,8 +20,12 @@ io.on('connection', function(socket) {
   });
 
   socket.on('chat-message', function(msg) {
-    console.log(msg);
-    io.emit('new-message', {
+    // console.log(msg);
+    // io.emit('new-message', {
+    //   message: msg,
+    //   user: users[users.findIndex(p => p.id == socket.id)].name
+    // });
+    socket.broadcast.to(users[users.findIndex(p => p.id == socket.id)].room).emit('new-message', {
       message: msg,
       user: users[users.findIndex(p => p.id == socket.id)].name
     });
@@ -30,16 +34,22 @@ io.on('connection', function(socket) {
   socket.on('join', function(data) {
     users.push({
       id: socket.id,
-      name: data.user
+      name: data.user,
+      room: 'First Group'
     });
     socket.join('First Group');
-    socket.join(data.user);
+    // socket.join(data.user);
     io.emit('new-user', users);
     console.log('User ' + data.user + ' connected with id ' + socket.id);
   });
 
   socket.on('group-change', function(group) {
+    socket.leave(users[users.findIndex(p => p.id == socket.id)].room);
     socket.join(group);
+    users[users.findIndex(p => p.id == socket.id)].room = group;
+    for (var i = 0; i < users.length; i++) {
+      console.log('User: ' + users[i].name + '  Id: ' + users[i].id + '   Room: ' + users[i].room);
+    }
   });
 
 });
